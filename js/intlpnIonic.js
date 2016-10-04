@@ -465,3 +465,4 @@ angular.module('intlpnIonic', ['ionic'])
         return utils.formatNumberByType(input, null, t);
     }
 });
+
