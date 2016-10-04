@@ -388,7 +388,7 @@ angular.module('intlpnIonic', ['ionic'])
                     }
                 }
             });
-            var modalTemplate = '<ion-modal-view>' +
+            var modalTemplate = '<ion-modal-view id="modal-international-phones">' +
                 '<ion-header-bar class="'+scope.boxHeaderClass+'">' + //need to have the class before creation
                     '<h1 class="title">{{modalScope.boxHeaderTitle}}</h1>' +
                     '<button class="button button-clear icon ion-ios-close-empty" ng-click="modalScope.close()"></button>' +
