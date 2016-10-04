@@ -7,6 +7,7 @@ Using https://github.com/Bluefieldscom/intl-tel-input inside Ionic framework cre
 Implemenation is dirty for now, as i need that as soon as possible.
 
 There is as well a filter to format a number in either international or national mode.
+This component based of pierre-vigier's intlpnIonic but changed order of all countries.
 
 ## Getting Started
 1. Install the requirements
