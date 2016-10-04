@@ -45,6 +45,32 @@ JSON.stringify(result);
 // ]
 var allCountries = [
   [
+    "United States",
+    "us",
+    "1",
+    0
+  ],
+  [
+    "India (भारत)",
+    "in",
+    "91"
+  ],
+  [
+    "United Kingdom",
+    "gb",
+    "44"
+  ],
+   [
+    "Germany (Deutschland)",
+    "de",
+    "49"
+  ],
+    [
+    "Mexico (México)",
+    "mx",
+    "52"
+  ],
+  [
     "Afghanistan (‫افغانستان‬‎)",
     "af",
     "93"
@@ -435,11 +461,7 @@ var allCountries = [
     "ge",
     "995"
   ],
-  [
-    "Germany (Deutschland)",
-    "de",
-    "49"
-  ],
+ 
   [
     "Ghana (Gaana)",
     "gh",
@@ -521,11 +543,7 @@ var allCountries = [
     "is",
     "354"
   ],
-  [
-    "India (भारत)",
-    "in",
-    "91"
-  ],
+ 
   [
     "Indonesia",
     "id",
@@ -703,11 +721,7 @@ var allCountries = [
     "mu",
     "230"
   ],
-  [
-    "Mexico (México)",
-    "mx",
-    "52"
-  ],
+
   [
     "Micronesia",
     "fm",
@@ -1163,17 +1177,8 @@ var allCountries = [
     "ae",
     "971"
   ],
-  [
-    "United Kingdom",
-    "gb",
-    "44"
-  ],
-  [
-    "United States",
-    "us",
-    "1",
-    0
-  ],
+
+
   [
     "Uruguay",
     "uy",
