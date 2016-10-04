@@ -450,7 +450,7 @@ angular.module('intlpnIonic', ['ionic'])
         replace:true,
         template: '<div class="item item-input intlpn-container">' +
                         '<i class="icon icon-intlpn-flag {{ isocode }}" ng-click="pickCountry()" ></i>'+
-                        '<input intlpn-formatter national-mode="nationalMode" iso-code="{{isocode}}" type="tel" placeholder="{{placeholder||''}}" ng-model="phone" >' +
+                        '<input intlpn-formatter national-mode="nationalMode" iso-code="{{isocode}}" type="tel" placeholder="{{placeholder}}" ng-model="phone" >' +
                 '</div>'
     };
 }])
