@@ -350,7 +350,8 @@ angular.module('intlpnIonic', ['ionic'])
             ngModelCtrl.$validators.validForm = function( modelValue, viewValue ) {
                 //check if the cleaned value is correct
                 if( scope.national ) {
-                    var phone = intlTelInputUtils.formatNumberByType(scope.phone, scope.isocode, intlTelInputUtils.numberFormat.INTERNATIONAL);
+                    //changed formatNumberByType to formatNumber
+                    var phone = intlTelInputUtils.formatNumber(scope.phone, scope.isocode, intlTelInputUtils.numberFormat.INTERNATIONAL); //intlTelInputUtils.formatNumberByType(scope.phone, scope.isocode, intlTelInputUtils.numberFormat.INTERNATIONAL);
                     var dial = scope.intlpnHelper.getDialCode(phone);
                     return dial === scope.dialCode && scope.isValid( modelValue, scope.isocode );
                 } else {
