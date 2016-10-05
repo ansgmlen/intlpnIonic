@@ -316,6 +316,7 @@ angular.module('intlpnIonic', ['ionic'])
                 ngModelCtrl.$setViewValue( scope.phone );
                 if( scope.national ) {
                     //do not change flag on input
+                     newValue = newValue.replace(/[^a-zA-Z ]/g, "");//apply blocking special characters
                 } else {
                     if( scope.intlpnHelper.getDialCode(  scope.phone ) ) {
                         scope.dialCode = scope.intlpnHelper.getDialCode(  scope.phone );
@@ -358,6 +359,8 @@ angular.module('intlpnIonic', ['ionic'])
                     return scope.isValid( modelValue );
                 }
             };
+
+
             //manage focus/blur of the phone field
             var input = element.find('input');
             input.bind('focus', function() {
@@ -419,6 +422,8 @@ angular.module('intlpnIonic', ['ionic'])
                     scope.isocode = country.iso2;
                     scope.countryIsoCode = scope.isocode;
                     scope._updateDialCode( country.dialCode );
+                    //when user change country, change format
+                    scope.phone = intlTelInputUtils.formatNumber(scope.phone,scope.isocode,intlTelInputUtils.numberFormat.NATIONAL);
                     scope.modal.hide();
                     $timeout(function() { input[0].focus();});
                 },
@@ -452,7 +457,7 @@ angular.module('intlpnIonic', ['ionic'])
         replace:true,
         template: '<div class="item item-input intlpn-container">' +
                         '<i class="icon icon-intlpn-flag {{ isocode }}" ng-click="pickCountry()" ></i>'+
-                        '<input intlpn-formatter national-mode="nationalMode" iso-code="{{isocode}}" type="tel" placeholder="{{placeholder}}" ng-model="phone" >' +
+                        '<input intlpn-formatter national-mode="nationalMode" iso-code="{{isocode}}" type="tel" placeholder="{{placeholder}}" ng-model="phone" maxlength="14">' +
                 '</div>'
     };
 }])
@@ -467,4 +472,3 @@ angular.module('intlpnIonic', ['ionic'])
         return utils.formatNumberByType(input, null, t);
     }
 });
-
