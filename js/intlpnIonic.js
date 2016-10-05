@@ -293,7 +293,8 @@ angular.module('intlpnIonic', ['ionic'])
                 scope.isocode = scope.intlpnHelper.getFlagFromNumber( ngModelCtrl.$viewValue );
                 scope.countryIsoCode = scope.isocode;
                 if( scope.national ) {
-                    scope.phone = intlTelInputUtils.formatNumberByType(ngModelCtrl.$viewValue,scope.isocode,intlTelInputUtils.numberFormat.NATIONAL);
+                    //intlTelInputUtils.formatNumberByType is not a function - changed formatNumberByType to formatNumber
+                    scope.phone = intlTelInputUtils.formatNumber(ngModelCtrl.$viewValue,scope.isocode,intlTelInputUtils.numberFormat.NATIONAL);
                 } else {
                     scope.phone = ngModelCtrl.$viewValue;
                 }
@@ -301,8 +302,8 @@ angular.module('intlpnIonic', ['ionic'])
             //from  view value (in ngModel directive) to model value (outside world)
             ngModelCtrl.$parsers.push(function(viewValue) {
                 if( scope.national ) {
-                    //clean everything that is not numeric or +
-                    viewValue = intlTelInputUtils.formatNumberByType(viewValue, scope.isocode, intlTelInputUtils.numberFormat.INTERNATIONAL).replace(/[^0-9]/g, "");
+                    //clean everything that is not numeric or +    //changed formatNumberByType to formatNumber
+                    viewValue = intlTelInputUtils.formatNumber(viewValue, scope.isocode, intlTelInputUtils.numberFormat.INTERNATIONAL).replace(/[^0-9]/g, "");
                     return viewValue?'+' + viewValue:'';
                 } else {
                     //clean everything that is not numeric or +
