@@ -317,7 +317,7 @@ angular.module('intlpnIonic', ['ionic'])
                 ngModelCtrl.$setViewValue( scope.phone );
                 if( scope.national ) {
                     //do not change flag on input
-                    scope.phone = newValue.replace(/[^0-9-]+/g, '');//apply blocking special characters
+                    scope.phone = newValue.replace(/[^0-9- ]+/g, '');//apply blocking special characters
                     //scope.fromDirectiveFn(newValue);
                     scope.fromDirectiveFn(scope.phone); //fires for controller
                     
