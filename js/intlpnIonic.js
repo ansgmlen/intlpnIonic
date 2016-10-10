@@ -317,8 +317,10 @@ angular.module('intlpnIonic', ['ionic'])
                 ngModelCtrl.$setViewValue( scope.phone );
                 if( scope.national ) {
                     //do not change flag on input
-                     //newValue = newValue.replace(/[^a-zA-Z ]/g, "");//apply blocking special characters
-                     scope.fromDirectiveFn(newValue); //fires for controller 
+                    scope.phone = newValue.replace(/[^0-9-]+/g, '');//apply blocking special characters
+                    //scope.fromDirectiveFn(newValue);
+                    scope.fromDirectiveFn(scope.phone); //fires for controller
+                    
                 } else {
                     if( scope.intlpnHelper.getDialCode(  scope.phone ) ) {
                         scope.dialCode = scope.intlpnHelper.getDialCode(  scope.phone );
