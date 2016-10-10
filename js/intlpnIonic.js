@@ -262,7 +262,8 @@ angular.module('intlpnIonic', ['ionic'])
             boxHeaderTitle: '@',
             searchPlaceholder: '@',
             countryIsoCode: '=?',
-            countryDialCode: '=?'
+            countryDialCode: '=?',
+            fromDirectiveFn: '=method'
         },
         controller: intlpnCtrl,
         link:function (scope, element, attrs, ngModelCtrl) {
@@ -316,7 +317,8 @@ angular.module('intlpnIonic', ['ionic'])
                 ngModelCtrl.$setViewValue( scope.phone );
                 if( scope.national ) {
                     //do not change flag on input
-                     newValue = newValue.replace(/[^a-zA-Z ]/g, "");//apply blocking special characters
+                     //newValue = newValue.replace(/[^a-zA-Z ]/g, "");//apply blocking special characters
+                     scope.fromDirectiveFn(newValue); //fires for controller 
                 } else {
                     if( scope.intlpnHelper.getDialCode(  scope.phone ) ) {
                         scope.dialCode = scope.intlpnHelper.getDialCode(  scope.phone );
