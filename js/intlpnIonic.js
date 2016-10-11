@@ -319,7 +319,11 @@ angular.module('intlpnIonic', ['ionic'])
                     //do not change flag on input
                     scope.phone = newValue.replace(/[^0-9- ]+/g, '');//apply blocking special characters
                     //scope.fromDirectiveFn(newValue);
-                    scope.fromDirectiveFn(scope.phone); //fires for controller
+                    scope.fromDirectiveFn({
+                      phone : scope.phone,
+                      countryCode : scope.countryDialCode,
+                      country : scope.countryIsoCode
+                    });
                     
                 } else {
                     if( scope.intlpnHelper.getDialCode(  scope.phone ) ) {
