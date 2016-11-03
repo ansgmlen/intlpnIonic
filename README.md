@@ -12,7 +12,7 @@ This component based of pierre-vigier's intlpnIonic but changed order of all cou
 ## Getting Started
 1. Install the requirements
  ```bash
- bower install https://github.com/ansgmlen/intlpnIonic.git#0.2.1 --save
+ bower install https://github.com/ansgmlen/intlpnIonic.git#0.2.3 --save
  ```
 
 2. Link the stylesheet
