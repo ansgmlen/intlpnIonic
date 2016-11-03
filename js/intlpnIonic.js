@@ -1,482 +1,145 @@
-'use strict';
-
-var intlpnCtrl = function( $ionicModal, $scope, intlpnUtils ) {
-    var self = $scope;
-    self.intlpnHelper = intlpnUtils.getHelper( self.onlyCountry);
-
-    self.national = false;
-    if( self.nationalMode ) {
-        self.national = true;
-    }
-    self.boxHeaderClass = angular.isDefined( self.boxHeaderClass )?self.boxHeaderClass:"bar-positive";
-    self.boxHeaderTitle = angular.isDefined(self.boxHeaderTitle )?self.boxHeaderTitle:"Search";
-    self.searchPlaceholder = angular.isDefined( self.searchPlaceholder )?self.searchPlaceholder:self.boxHeaderTitle;
-
-    self._updateDialCode = function(newDialCode) {
-        var newNumber;
-
-        // save having to pass this every time
-        newDialCode = "+" + newDialCode;
-
-        if( self.national ) {
-            //in national mode, do not replace number
-        } else {
-            if (self.phone) {
-              // if the previous number contained a valid dial code, replace it
-              // (if more than just a plus character)
-              var prevDialCode = self.intlpnHelper.getDialCode(self.phone);
-              if (prevDialCode.length > 1) {
-                newNumber = self.phone.replace(prevDialCode, newDialCode);
-              } else {
-                // if the previous number didn't contain a dial code, we should persist it
-                // XXX: remove jquery
-                var existingNumber = (self.phone.charAt(0) != "+") ? self.phone.trim() : "";
-                newNumber = newDialCode + existingNumber;
-              }
-            } else {
-              newNumber = newDialCode;
-            }
-
-            self.phone = newNumber;
-        }
-        self.dialCode = newDialCode;
-        self.countryDialCode = self.dialCode;
-    };
-
-    self.codeFromPhone = function( number ) {
-        return self.intlpnHelper.getFlagFromNumber(number);
-    };
-
-    self.isValid = function( number, countryCode ) {
-        return intlTelInputUtils.isValidNumber(number, countryCode);
+<style>
+  @media (min-width: 680px) {
+    .modal-backdrop.active .modal-backdrop-bg {
+      opacity: .7;
     }
 
-    //default value
-    if( !self.isocode && self.defaultCountry ) {
-        self.isocode = self.defaultCountry;
-        self.countryIsoCode = self.isocode;
-        self.dialCode = '+' + self.intlpnHelper.dialCodesByIso[self.defaultCountry];
-        self.countryDialCode = self.dialCode;
+    .modal-backdrop .modal-wrapper .modal {
+      left: 5%;
+      right: 5%;
+      width: 90%;
     }
-};
 
-intlpnCtrl.$inject = ['$ionicModal', '$scope', 'intlpnUtils'];
-
-angular.module('intlpnIonic', ['ionic'])
-.service('intlpnUtils', function() {
-    var intlpnUtilsHelper = function( onlyCountry) {
-        var self = this;
-        self.countries = [];
-        self.countryCodes = [];
-        self.dialCodesByIso={};
-        self.onlyCountry = onlyCountry||[];
-        self._addCountryCode = function(iso2, dialCode, priority) {
-            if( !(iso2 in self.dialCodesByIso) ) {
-                self.dialCodesByIso[iso2] = dialCode;
-            }
-            if (!(dialCode in self.countryCodes)) {
-                self.countryCodes[dialCode] = [];
-            }
-            var index = priority || 0;
-            self.countryCodes[dialCode][index] = iso2;
-        };
-        self._initCountries = function() {
-            //only countries
-            if(  self.onlyCountry.length ) {
-                angular.forEach( allCountries, function(value) {
-                     angular.forEach( self.onlyCountry, function( restricted ) {
-                         if( restricted === value.iso2 )  {
-                             self.countries.push( value );
-                         }
-                     });
-                });
-            } else {
-                self.countries = allCountries;
-            }
-            for (i = 0; i < self.countries.length; i++) {
-                  var c = self.countries[i];
-                  self._addCountryCode(c.iso2, c.dialCode, c.priority);
-                  // area codes
-                  if (c.areaCodes) {
-                    for (var j = 0; j < c.areaCodes.length; j++) {
-                      // full dial code is country code + dial code
-                      self._addCountryCode(c.iso2, c.dialCode + c.areaCodes[j]);
-                    }
-                  }
-            };
-        };
-        self._getNumeric = function(s) {
-            return s.replace(/\D/g, "");
-        };
-        self.getFlagFromNumber= function(number, updateDefault) {
-            // try and extract valid dial code from input
-            var dialCode = self.getDialCode(number);
-            var countryCode = null;
-            if (dialCode) {
-              // check if one of the matching countries is already selected
-              var codes = self.countryCodes[self._getNumeric(dialCode)];
-              //alreadySelected = (this.selectedCountryData && $.inArray(this.selectedCountryData.iso2, countryCodes) != -1);
-              // if a matching country is not already selected (or this is an unknown NANP area code): choose the first in the list
-              //if (!alreadySelected || this._isUnknownNanp(number, dialCode)) {
-                // if using onlyCountries option, countryCodes[0] may be empty, so we must find the first non-empty index
-                for (var j = 0; j < codes.length; j++) {
-                  if (codes[j]) {
-                    countryCode = codes[j];
-                    break;
-                  }
-                }
-              //}
-            } else if (number.charAt(0) == "+" && self._getNumeric(number).length) {
-              // invalid dial code, so empty
-              // Note: use getNumeric here because the number has not been formatted yet, so could contain bad shit
-              countryCode = "";
-            } else if (!number || number == "+") {
-              // empty, or just a plus, so default
-              countryCode = 'us';//this.options.defaultCountry.iso2;
-            }
-
-            if (countryCode !== null) {
-              return countryCode;
-            }
-        };
-        this.getDialCode= function(number) {
-            var dialCode = "";
-            // only interested in international numbers (starting with a plus)
-            if (number && number.charAt(0) == "+") {
-              var numericChars = "";
-              // iterate over chars
-              for (var i = 0; i < number.length; i++) {
-                var c = number.charAt(i);
-                // if char is number
-                //XXX: replace by angular
-                //if ($.isNumeric(c)) {
-                if ( /^\d$/.test(c) ) {
-                  numericChars += c;
-                  // if current numericChars make a valid dial code
-                  if (self.countryCodes[numericChars]) {
-                    // store the actual raw string (useful for matching later)
-                    dialCode = number.substr(0, i + 1);
-                  }
-                  // longest dial code is 4 chars
-                  if (numericChars.length == 4) {
-                    break;
-                  }
-                }
-              }
-            }
-            return dialCode;
-        };
-        this.format_number = intlTelInputUtils.formatNumber;
-        this.intlTelInputUtils = intlTelInputUtils;
-    };
-    return {
-        getHelper: function( onlyCountry) {
-            var helper = new intlpnUtilsHelper( onlyCountry);
-            helper.allCountries = allCountries;
-            helper._initCountries();
-            return helper;
-        }
-    };
-})
-.directive('intlpnFormatter', function() {
-    return {
-        require: 'ngModel',
-        scope: {
-            'isoCode' : '@',
-            'nationalMode' : '='
-        },
-        link: function(scope, element, attrs, ngModelController) {
-            var el = element[0];
-            var national = false;
-            if( scope.nationalMode ) {
-                national = true;
-            }
-
-            function clean(x) {
-                if( national ) {
-                    if( x.length > 1 ) {
-                        return intlTelInputUtils.formatNumber(x, scope.isoCode, true );
-                    } else {
-                        return x;
-                    }
-                } else {
-                    return intlTelInputUtils.formatNumber( x );
-                }
-            }
-
-            ngModelController.$parsers.push(function(val) {
-                var offset = 0;
-
-                if( national ) {
-                } else {
-                    if( !/^\+/.test( val ) ) {
-                        val = '+'+val;
-                        offset = 1;
-                    }
-                }
-                var cleaned = clean(val);
-
-                // Avoid infinite loop of $setViewValue <-> $parsers
-                var newStart = cleaned.length;
-                var start = el.selectionStart + offset;
-                var end = el.selectionEnd + offset;
-                var selectionLength = end - start;
-                var digitsOnTheRight = 0;
-                for( var i = val.length; i >= start; i-- ) {
-                    if( /^\d$/.test( val.charAt(i) ) ) {
-                        digitsOnTheRight ++;
-                    }
-                }
-                while( digitsOnTheRight > 0 && newStart > 0 ) {
-                    if( /^\d$/.test( cleaned.charAt( newStart - 1 ) ) ) {
-                        digitsOnTheRight--;
-                    }
-                    newStart--;
-                }
-                //move to the left while space
-                while(  /^[^0-9+]$/.test( cleaned.charAt( newStart - 1 ) ) && newStart > 0 )
-                    newStart--;
-                // element.val(cleaned) does not behave with
-                // repeated invalid elements
-                ngModelController.$setViewValue(cleaned);
-                ngModelController.$render();
-                el.setSelectionRange(newStart, newStart);
-                return cleaned;
-                //return val;
-            });
-
-        }
+    .modal-backdrop .modal-wrapper .modal .bar {
+      height: 64px !important;
     }
-})
-.directive('intlpn',  ['$ionicModal', '$timeout', '$ionicScrollDelegate', function( $ionicModal, $timeout, $ionicScrollDelegate ) {
-    return {
-        restrict: 'E',
-        require: '^ngModel',
-        scope: {
-            ngModel: '=',
-            placeholder: '@',
-            defaultCountry: '@',
-            onlyCountry: '=',
-            nationalMode: '=',
-            boxHeaderClass: '@',
-            boxHeaderTitle: '@',
-            searchPlaceholder: '@',
-            countryIsoCode: '=?',
-            countryDialCode: '=?',
-            fromDirectiveFn: '=method'
-        },
-        controller: intlpnCtrl,
-        link:function (scope, element, attrs, ngModelCtrl) {
-            //When model value (outside world) is updated, set the view value (in ngModel directive)
-            ngModelCtrl.$formatters.push(function(modelValue) {
-                //from raw value to formatted value, parenthesis, dash, ...
-                if( typeof modelValue === undefined || modelValue === '' ) {
-                    $timeout(function() {
-                        scope.isocode = scope.defaultCountry;
-                        scope.countryIsoCode = scope.isocode
-                        scope.dialCode = '+' + scope.intlpnHelper.dialCodesByIso[scope.defaultCountry];
-                        scope.countryDialCode = scope.dialCode;
-                    });
-                }
-                if( modelValue )
-                    modelValue = modelValue.replace(/[^0-9]/g, "");
-                if( scope.national ) {
-                    //return  modelValue?intlTelInputUtils.formatNumberByType(modelValue,scope.isocode,intlTelInputUtils.numberFormat.NATIONAL):'';
-                    return  modelValue?intlTelInputUtils.formatNumber('+'+modelValue):'';
-                } else {
-                    return  modelValue?intlTelInputUtils.formatNumber('+'+modelValue):'';
-                }
-            });
-            //from the value in ngModel directive to my directive
-            ngModelCtrl.$render = function() {
-                scope.dialCode = scope.intlpnHelper.getDialCode( ngModelCtrl.$viewValue );
-                scope.countryDialCode = scope.dialCode;
-                scope.isocode = scope.intlpnHelper.getFlagFromNumber( ngModelCtrl.$viewValue );
-                scope.countryIsoCode = scope.isocode;
-                if( scope.national ) {
-                    //intlTelInputUtils.formatNumberByType is not a function - changed formatNumberByType to formatNumber
-                    scope.phone = intlTelInputUtils.formatNumber(ngModelCtrl.$viewValue,scope.isocode,intlTelInputUtils.numberFormat.NATIONAL);
-                } else {
-                    scope.phone = ngModelCtrl.$viewValue;
-                }
-            };
-            //from  view value (in ngModel directive) to model value (outside world)
-            ngModelCtrl.$parsers.push(function(viewValue) {
-                if( scope.national ) {
-                    //clean everything that is not numeric or +    //changed formatNumberByType to formatNumber
-                    viewValue = intlTelInputUtils.formatNumber(viewValue, scope.isocode, intlTelInputUtils.numberFormat.INTERNATIONAL).replace(/[^0-9]/g, "");
-                    return viewValue?'+' + viewValue:'';
-                } else {
-                    //clean everything that is not numeric or +
-                    viewValue = viewValue.replace(/[^0-9]/g, "");
-                    return viewValue?'+' + viewValue:'';
-                }
-            });
-            //$setViewValue, from my directive to view value (in ngModel directive)
-            scope.$watch('phone', function(newValue, oldValue) {
-                ngModelCtrl.$setViewValue( scope.phone );
-                if( scope.national ) {
-                    //do not change flag on input
-                    scope.phone = newValue.replace(/[^0-9- ]+/g, '');//apply blocking special characters
-                    //scope.fromDirectiveFn(newValue);
-                    scope.fromDirectiveFn({
-                      phone : scope.phone,
-                      countryCode : scope.countryDialCode,
-                      country : scope.countryIsoCode
-                    });
-                    
-                } else {
-                    if( scope.intlpnHelper.getDialCode(  scope.phone ) ) {
-                        scope.dialCode = scope.intlpnHelper.getDialCode(  scope.phone );
-                        scope.countryDialCode = scope.dialCode;
-                        //from dialcode, validate current country
-                        var countryCodes = scope.intlpnHelper.countryCodes[ scope.dialCode.replace(/[^0-9]/g, "") ];
-                        var alreadySelected = (countryCodes.indexOf( scope.isocode ) > -1)?true:false;
-                        if( !alreadySelected ) {
-                            for (var j = 0; j < countryCodes.length; j++) {
-                                if (countryCodes[j]) {
-                                    scope.isocode = countryCodes[j];
-                                    scope.countryIsoCode = scope.isocode;
-                                    break;
-                                }
-                            }
-                        }
-                    } else if( !scope.dialCode ) {
-                        //default value
-                        scope.dialCode = "+"+scope.intlpnHelper.dialCodesByIso[scope.defaultCountry];
-                        scope.countryDialCode = scope.dialCode;
-                    }
-                }
-            });
-            scope.$watch('defaultCountry', function(newValue, oldValue) {
-                if( !scope.phone || scope.phone === scope.dialCode ) {
-                    scope.isocode = scope.defaultCountry;
-                    scope.countryIsoCode = scope.isocode;
-                    scope.dialCode = "+"+scope.intlpnHelper.dialCodesByIso[scope.defaultCountry];
-                    scope.countryDialCode = scope.dialCode;
-                }
-            });
-            ngModelCtrl.$validators.validForm = function( modelValue, viewValue ) {
-                //check if the cleaned value is correct
-                if( scope.national ) {
-                    //changed formatNumberByType to formatNumber
-                    var phone = intlTelInputUtils.formatNumber(scope.phone, scope.isocode, intlTelInputUtils.numberFormat.INTERNATIONAL); //intlTelInputUtils.formatNumberByType(scope.phone, scope.isocode, intlTelInputUtils.numberFormat.INTERNATIONAL);
-                    var dial = scope.intlpnHelper.getDialCode(phone);
-                    return dial === scope.dialCode && scope.isValid( modelValue, scope.isocode );
-                } else {
-                    return scope.isValid( modelValue );
-                }
-            };
 
-
-            //manage focus/blur of the phone field
-            var input = element.find('input');
-            input.bind('focus', function() {
-                if( scope.national ) {
-                } else {
-                    if( !scope.phone ) {
-                        scope.$apply(function() {
-                            scope.phone = scope.dialCode;
-                            scope.countryDialCode = scope.dialCode;
-                            input[0].setSelectionRange( scope.dialCode.length );
-                        });
-                    }
-                }
-            })
-            .bind('blur', function() {
-                if( scope.national ) {
-                } else {
-                    if( scope.phone === '+' ) {
-                        scope.$apply(function() {
-                            scope.isocode = scope.defaultCountry;
-                            scope.countryIsoCode = scope.isocode;
-                            scope.dialCode = "+"+scope.intlpnHelper.dialCodesByIso[scope.defaultCountry];
-                            scope.countryDialCode = scope.dialCode;
-                            scope.phone = '';
-                        });
-                    } else if( scope.phone === scope.dialCode || !scope.intlpnHelper.getDialCode(scope.phone) ) {
-                        scope.$apply(function() {
-                            scope.phone = '';
-                        });
-                    }
-                }
-            });
-            var modalTemplate = '<ion-modal-view id="modal-international-phones">' +
-                '<ion-header-bar class="'+scope.boxHeaderClass+'">' + //need to have the class before creation
-                    '<h1 class="title">{{modalScope.boxHeaderTitle}}</h1>' +
-                    '<button class="button button-clear icon ion-ios-close-empty" ng-click="modalScope.close()"></button>' +
-                '</ion-header-bar>' +
-                    '<div class="bar bar-subheader item-input-inset" ng-if="modalScope.countries.length > 10">' +
-                        '<div class="item-input-wrapper">' +
-                            '<i class="icon ion-ios-search placeholder-icon"></i>' +
-                            '<input type="text" autocorrect="off" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="{{modalScope.searchPlaceholder}}" ng-model="modalScope.pattern" ng-change="modalScope.scrollTop()">' +
-                            '<i class="icon ion-close-circled placeholder-icon" ng-show="modalScope.pattern" ng-click="modalScope.pattern=\'\'"></i>' +
-                        '</div>' +
-                    '</div>' +
-                 '<ion-content class="has-header" ng-class="(modalScope.countries.length > 10)?\'has-subheader\':\'\'">' +
-                    '<ion-list>' +
-                        '<ion-item collection-repeat="country in modalScope.countries | filter:modalScope.pattern" item-height="55px" item-width="100%"' +
-                            'ng-click="modalScope.selectCountry( country )" ' +
-                            'class="item-icon-left" ng-class="(country.iso2 == modalScope.currentCountry)?\'item-icon-right\':\'\'">' +
-                                '<i class="icon icon-intlpn-flag {{country.iso2}}" ></i>' +
-                                '{{country.name}}' +
-                                '<i class="icon ion-ios-checkmark-empty" ng-if="(country.iso2 == modalScope.currentCountry)"></i>' +
-                        '</ion-item>' +
-                    '</ion-list>' +
-                '</ion-content>' +
-                '</ion-modal-view>';
-            scope.modalScope = {
-                selectCountry: function( country ) {
-                    scope.isocode = country.iso2;
-                    scope.countryIsoCode = scope.isocode;
-                    scope._updateDialCode( country.dialCode );
-                    //when user change country, change format
-                    scope.phone = intlTelInputUtils.formatNumber(scope.phone,scope.isocode,intlTelInputUtils.numberFormat.NATIONAL);
-                    scope.modal.hide();
-                    $timeout(function() { input[0].focus();});
-                },
-                close: function() {
-                    scope.modal.hide();
-                },
-                scrollTop: function() {
-                    $ionicScrollDelegate.scrollTop(true);
-                },
-                countries: scope.intlpnHelper.countries,
-                boxHeaderTitle: scope.boxHeaderTitle,
-                searchPlaceholder: scope.searchPlaceholder
-            };
-            scope.modal = $ionicModal.fromTemplate( modalTemplate, {
-                scope: scope
-            });
-            scope.pickCountry = function() {
-                if( scope.intlpnHelper.countries.length == 1 )
-                    return;
-                scope.modalScope.pattern = '';
-                scope.modalScope.currentCountry = scope.isocode;
-                scope.modalScope.countries= scope.intlpnHelper.countries;
-                scope.modalScope.boxHeaderTitle= scope.boxHeaderTitle;
-                scope.modalScope.searchPlaceholder= scope.searchPlaceholder;
-                scope.modal.show();
-            };
-            scope.$on('$destroy', function() {
-                scope.modal.remove();
-            });
-        },
-        replace:true,
-        template: '<div class="item item-input intlpn-container">' +
-                        '<i class="icon icon-intlpn-flag {{ isocode }}" ng-click="pickCountry()" ></i>'+
-                        '<input intlpn-formatter national-mode="nationalMode" iso-code="{{isocode}}" type="tel" placeholder="{{placeholder}}" ng-model="phone" maxlength="14">' +
-                '</div>'
-    };
-}])
-.filter('intlpnFormat', function( intlpnUtils ) {
-    var helper = intlpnUtils.getHelper();
-    var utils = helper.intlTelInputUtils;
-    return function( input, type ) {
-        var t=utils.numberFormat.INTERNATIONAL;
-        if( type == 'national') {
-            t=utils.numberFormat.NATIONAL;
-        }
-        return utils.formatNumberByType(input, null, t);
+    .modal-backdrop .modal-wrapper .modal .bar h1.title {
+      font-size: 2em !important;
+      height: 63px !important;
+      line-height: 64px;
     }
-});
+
+    .modal-backdrop .modal-wrapper .modal .has-header {
+      top: 64px !important;
+    }
+
+    .modal-backdrop .modal-wrapper .modal .has-footer {
+      bottom: 120px !important;
+    }
+
+    .modal-backdrop .modal-wrapper .modal .alert p {
+      font-size: 1em;
+    }
+
+    .modal-backdrop .modal-wrapper .modal.modal-inverted {
+      background-color: transparent;
+      /*bottom: 25% !important;*/;
+    }
+
+    .modal-backdrop .modal-wrapper .modal.modal-inverted .bar {
+      background-color: transparent;
+      background-image: none;
+      border: none;
+    }
+
+    .modal-backdrop .modal-wrapper .modal.modal-inverted .bar.bar-footer {
+      background-color: #fff;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+      border-top: 1px solid #ddd;
+      height: 120px !important;
+      padding: 2em;
+    }
+
+    .modal-backdrop .modal-wrapper .modal.modal-inverted .bar.bar-footer .button + .button:last-child {
+      position: static !important;
+    }
+
+    .modal-backdrop .modal-wrapper .modal.modal-inverted .bar .title {
+      color: #fff;
+      font-size: 3em;
+    }
+
+    .modal-backdrop .modal-wrapper .modal.modal-inverted ion-content {
+      border-radius: 20px;
+      overflow: hidden !important;
+    }
+
+    .modal-backdrop .modal-wrapper .modal.modal-inverted ion-content.has-footer {
+      border-radius: 0;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+    }
+  }
+</style>
+<ion-modal-view class="modal-inverted" id="add-visitor">
+  <ion-header-bar>
+    <h1 class="title">Visitor {{guest.guests.length + 1}}</h1>
+    <button class="button button-clear button-light icon ion-close" ng-click="guest.closeGuestDetails()"></button>
+  </ion-header-bar>
+
+
+  <ion-content class="background-white has-footer" scroll="false">
+    <div name="guestDetailsForm">
+      <div class="row padding-large" style="padding-bottom: 0;">
+
+
+        <div class="col col-25">
+          <button class="button button-block button-camera padding-right-large" ng-click="guest.clickPicture()">
+            <img ng-show="guest.imageSrc !== undefined" ng-src="{{guest.imageSrc}}" class="image-responsive">
+            <span ng-show="imageSrc === undefined"><i class="icon ion-camera"></i><div>Add photo</div></span>
+          </button>
+        </div>
+
+        <div class="col col-75">
+          <div class="row">
+            <label class="item-input item-stacked-label col col-50 padding-right-large">
+              <span class="input-label required">First name</span>
+              <input ng-model="guest.details.firstName" ng-change="guest.validateGuestDetails(guest.details.firstName, 'firstName', 17)" type="text" placeholder="" id="firstname" name="FIRSTNAME"
+                     ng-required="true" class="col-90" focus-me>
+            </label>
+            <label class="item-input item-stacked-label col col-50">
+              <span class="input-label required">Last name</span>
+              <input ng-model="guest.details.lastName" ng-change="guest.validateGuestDetails(guest.details.lastName, 'lastName', 17)" type="text" placeholder="" id="lastname" name="LASTNAME"
+                     ng-required="true">
+            </label>
+          </div>
+          <div class="row">
+            <div ng-if="guest.guests.length < 1" class="col col-50 padding-right-large">
+              <div class="input-label required" style="width:100%; line-height:0px; ">Phone number</div>
+                  <intlpn id="phone" ng-model="guest.details.phone.number" placehoder="placeholder" national-mode="true" default-country="{{guest.defaultCountry}}" name="PHONE" data-method="getPhone"></intlpn><!-- only-country="['fr','us','cn']" -->
+            </div>
+            <label class="item-input item-stacked-label col col-50">
+              <span class="input-label required">Company</span>
+              <input ng-model="guest.details.company"  ng-change="guest.validateGuestDetails(guest.details.company, 'company', 20)" type="text" placeholder="" id="company" name="COMPANY"
+                     ng-required="true">
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col padding-horizontal-large">
+          <div class="vz-checkbox" ng-click="guest.checked()">
+            <i class="{{guest.agreeDisclaimer.checked}} checkbox"></i>
+            <p class="label required">I agree to the Terms and Conditions</p>
+          </div>
+          <ion-scroll direction="y" style="height: 100px;">   <b>Terms and Conditions:</b> You agree to abide to Verizon’s rules and procedures related to Security and Facilities Management, which are available upon request. Unless specifically permitted by you, the use of the check-in service does not grant us the license to use, reproduce, adapt, modify, publish or distribute this content for our commercial, marketing or any similar purpose. However, nothing in these terms shall restrict our right to compile and use aggregated usage data and statistics, or to disclose these aggregated statistics, as long as these do not describe or identify any individual user. </ion-scroll>
+        </div>
+      </div>
+
+    </div>
+  </ion-content>
+  <ion-footer-bar style="overflow:hidden; width:100%;">
+    <!--guest.imageSrc === undefined || guest.imageSrc === '' || -->
+    <button class="button button-assertive button-primary button-large"
+        ng-disabled="guest.agreeDisclaimer.checked == null || guest.details.firstName == undefined || guest.details.firstName === '' || guest.details.lastName == undefined || guest.details.lastName === '' ||  guest.details.company === undefined || guest.details.company == '' || phoneValCheck() "
+        ng-click="guest.addGuests()" style="float:left; width:49%;">Submit <i class="icon ion-ios-arrow-right"></i>
+    </button>
+    <div style="width:2%;">&nbsp</div>
+    <button class="button button-dark button-large" style="float:right; width:49%;" ng-click="guest.closeGuestDetails()">
+      Cancel
+    </button>
+  </ion-footer-bar>
+</ion-modal-view>
