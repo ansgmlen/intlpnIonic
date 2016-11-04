@@ -300,7 +300,7 @@ angular.module('intlpnIonic', ['ionic'])
                 }else if(scope.countryIsoCode == "au"){
                   scope.maxlength = 11;
                 }else{
-                  scope.maxlength = 14;
+                  scope.maxlength = 15;
                 }
 
                 if( scope.national ) {
@@ -434,7 +434,7 @@ angular.module('intlpnIonic', ['ionic'])
                                 '<i class="icon icon-intlpn-flag {{country.iso2}}" ></i>' +
                                 '{{country.name}}' +
                                 '<i class="icon ion-ios-checkmark-empty" ng-if="(country.iso2 == modalScope.currentCountry)"></i>' +
-                                '<div ng-if="country.iso2 == \'in\'" style="height:3px; width:120%; background-color:#696969; margin-top:16px; margin-left:-80px;"></div>' +
+                                '<div ng-if="country.iso2 == \'in\'" style="height:3px; width:130%; background-color:#696969; margin-top:16px; margin-left:-80px;"></div>' +
                         '</ion-item>' +
                     '</ion-list>' +
                 '</ion-content>' +
@@ -455,7 +455,7 @@ angular.module('intlpnIonic', ['ionic'])
                     }else if(scope.countryIsoCode == "au"){
                       scope.maxlength = 11;
                     }else{
-                      scope.maxlength = 14;
+                      scope.maxlength = 15;
                     }
 
                     scope.modal.hide();
