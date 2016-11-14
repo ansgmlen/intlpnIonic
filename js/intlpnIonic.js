@@ -294,11 +294,17 @@ angular.module('intlpnIonic', ['ionic'])
                 scope.isocode = scope.intlpnHelper.getFlagFromNumber( ngModelCtrl.$viewValue );
                 scope.countryIsoCode = scope.isocode;
 
+                //German mobile number is  11
+                //India 10 digits and usually starts with 9 or 8.
+                //United Kingdom 10
+                //Australia 10 digit including 4  (drop first 0)
                 //max phone number digit check
-                if(scope.countryIsoCode == "us" || scope.countryIsoCode == "gb" || scope.countryIsoCode == "in" || scope.countryIsoCode == "de"){
+                if(scope.countryIsoCode == "us" || scope.countryIsoCode == "de"){
                   scope.maxlength = 12;
+                }else if(scope.countryIsoCode == "in" || scope.countryIsoCode == "gb"){
+                  scope.maxlength = 10;
                 }else if(scope.countryIsoCode == "au"){
-                  scope.maxlength = 11;
+                  scope.maxlength = 11; //total 9 digits but including two spaces
                 }else{
                   scope.maxlength = 15;
                 }
@@ -306,9 +312,17 @@ angular.module('intlpnIonic', ['ionic'])
                 if( scope.national ) {
                     //intlTelInputUtils.formatNumberByType is not a function - changed formatNumberByType to formatNumber
                     scope.phone = intlTelInputUtils.formatNumber(ngModelCtrl.$viewValue,scope.isocode,intlTelInputUtils.numberFormat.NATIONAL);
+
+                    //!! Nomally it drop first 0.
+                    if(scope.phone.charAt(0) == 0){
+                      scope.phone = scope.phone.substr(1);
+                    }
+
                 } else {
                     scope.phone = ngModelCtrl.$viewValue;
                 }
+
+
             };
             //from  view value (in ngModel directive) to model value (outside world)
             ngModelCtrl.$parsers.push(function(viewValue) {
@@ -331,6 +345,12 @@ angular.module('intlpnIonic', ['ionic'])
                     //do not change flag on input
                     if(newValue != undefined){
                       scope.phone = newValue.replace(/[^0-9- ]+/g, '');//apply blocking special characters
+
+                      //!! After returning guest search, it returns "571 488-1003" so make space to dash for consistant format.
+                      if(scope.countryIsoCode == "us" && scope.phone.length > 10){
+                        scope.phone = scope.phone.replace(" ", "-");
+                      }
+
                       scope.fromDirectiveFn({
                         phone : scope.phone,
                         countryCode : scope.countryDialCode,
@@ -433,7 +453,7 @@ angular.module('intlpnIonic', ['ionic'])
                             'class="item-icon-left" ng-class="(country.iso2 == modalScope.currentCountry)?\'item-icon-right\':\'\'">' +
                                 '<i class="icon icon-intlpn-flag {{country.iso2}}" ></i>' +
                                 '{{country.name}}' +
-                                '<i class="icon ion-ios-checkmark-empty" ng-if="(country.iso2 == modalScope.currentCountry)"></i>' +
+                                '<i class="icon ion-ios-checkmark-empty" ng-if="(country.iso2 == modalScope.currentCountry)" style="margin-left:92%;"></i>' +
                                 '<div ng-if="country.iso2 == \'in\'" style="height:3px; width:130%; background-color:#696969; margin-top:16px; margin-left:-80px;"></div>' +
                         '</ion-item>' +
                     '</ion-list>' +
@@ -450,13 +470,17 @@ angular.module('intlpnIonic', ['ionic'])
                     //scope.phone = intlTelInputUtils.formatNumber(scope.phone,scope.isocode,intlTelInputUtils.numberFormat.NATIONAL);
 
                     //max phone number digit check
-                    if(scope.countryIsoCode == "us" || scope.countryIsoCode == "gb" || scope.countryIsoCode == "in" || scope.countryIsoCode == "de"){
+                    if(scope.countryIsoCode == "us" || scope.countryIsoCode == "de"){
                       scope.maxlength = 12;
-                    }else if(scope.countryIsoCode == "au"){
+                    }else if(scope.countryIsoCode == "in" || scope.countryIsoCode == "gb"){
+                      scope.maxlength = 10;
+                    }
+                    else if(scope.countryIsoCode == "au"){
                       scope.maxlength = 11;
                     }else{
                       scope.maxlength = 15;
                     }
+
 
                     scope.modal.hide();
                     $timeout(function() { input[0].focus();});
