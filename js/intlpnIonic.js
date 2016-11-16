@@ -294,21 +294,6 @@ angular.module('intlpnIonic', ['ionic'])
                 scope.isocode = scope.intlpnHelper.getFlagFromNumber( ngModelCtrl.$viewValue );
                 scope.countryIsoCode = scope.isocode;
 
-                //German mobile number is  11
-                //India 10 digits and usually starts with 9 or 8.
-                //United Kingdom 10
-                //Australia 10 digit including 4  (drop first 0)
-                //max phone number digit check
-                if(scope.countryIsoCode == "us" || scope.countryIsoCode == "de"){
-                  scope.maxlength = 12;
-                }else if(scope.countryIsoCode == "in" || scope.countryIsoCode == "gb"){
-                  scope.maxlength = 10;
-                }else if(scope.countryIsoCode == "au"){
-                  scope.maxlength = 11; //total 9 digits but including two spaces
-                }else{
-                  scope.maxlength = 15;
-                }
-
                 if( scope.national ) {
                     //intlTelInputUtils.formatNumberByType is not a function - changed formatNumberByType to formatNumber
                     scope.phone = intlTelInputUtils.formatNumber(ngModelCtrl.$viewValue,scope.isocode,intlTelInputUtils.numberFormat.NATIONAL);
@@ -344,7 +329,8 @@ angular.module('intlpnIonic', ['ionic'])
                 if( scope.national ) {
                     //do not change flag on input
                     if(newValue != undefined){
-                      scope.phone = newValue.replace(/[^0-9- ]+/g, '');//apply blocking special characters
+
+                      scope.phone = newValue.replace(/[^0-9- ]+/g, '');//!!apply blocking special characters
 
                       //!! After returning guest search, it returns "571 488-1003" so make space to dash for consistant format.
                       if(scope.countryIsoCode == "us" && scope.phone.length > 10){
@@ -388,6 +374,20 @@ angular.module('intlpnIonic', ['ionic'])
                     scope.dialCode = "+"+scope.intlpnHelper.dialCodesByIso[scope.defaultCountry];
                     scope.countryDialCode = scope.dialCode;
                 }
+
+                //German mobile number is  11
+                //India 10 digits and usually starts with 9 or 8.
+                //United Kingdom 10
+                //Australia 10 digit including 4  (drop first 0)
+                //max phone number digit check
+                if(scope.countryIsoCode == "us" || scope.countryIsoCode == "de"){
+                  scope.maxlength = 12;
+                }else if(scope.countryIsoCode == "au" || scope.countryIsoCode == "in" || scope.countryIsoCode == "gb"){
+                  scope.maxlength = 11; //For au, total 9 digits but including two spaces. For in&gb 10digit including one space
+                }else{
+                  scope.maxlength = 15;
+                }
+
             });
             ngModelCtrl.$validators.validForm = function( modelValue, viewValue ) {
                 //check if the cleaned value is correct
@@ -472,10 +472,11 @@ angular.module('intlpnIonic', ['ionic'])
                     //max phone number digit check
                     if(scope.countryIsoCode == "us" || scope.countryIsoCode == "de"){
                       scope.maxlength = 12;
-                    }else if(scope.countryIsoCode == "in" || scope.countryIsoCode == "gb"){
-                      scope.maxlength = 10;
-                    }
-                    else if(scope.countryIsoCode == "au"){
+                    }//else ifscope.countryIsoCode == "in" || scope.countryIsoCode == "gb"){
+                      //scope.maxlength = 11;
+                    //}
+                    //TODO upload to github and need to test with already set specific country!!!
+                    else if(scope.countryIsoCode == "au" || scope.countryIsoCode == "in" || scope.countryIsoCode == "gb"){
                       scope.maxlength = 11;
                     }else{
                       scope.maxlength = 15;
