@@ -5,12 +5,6 @@
   "authors": [
     "Pierre Vigier"
   ],
-  "main": [
-    "./js/intlpnIonic.js",
-    "./js/data.js",
-    "./css/intlpn.css",
-    "./img/intlpn-flags.png",
-    "./lib/libphonenumber/build/utils.js"
-  ],
+  "main": "./js/intlpnIonic.js",
   "license": "MIT"
 }
