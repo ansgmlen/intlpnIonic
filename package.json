@@ -1,8 +1,7 @@
 {
-	"name": "intlpnIonic",
-	"version": "0.1.8",
-	"description": "",
-	"homepage": "https://github.com/ansgmlen/intlpnIonic",
+  "name": "intlpnIonic",
+  "version": "0.1.8",
+  "homepage": "https://github.com/ansgmlen/intlpnIonic",
   "authors": [
     "Pierre Vigier"
   ],
